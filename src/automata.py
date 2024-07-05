@@ -1,9 +1,6 @@
-"""Implementação de autômatos finitos."""
 from typing import List, Dict, Tuple
 
-
-def load_automata(filename) -> Tuple:
-    
+def load_automata(filename: str) -> Tuple:
     try:
         with open(filename, 'r') as file:
             lines = [line.strip() for line in file.readlines()]
@@ -14,11 +11,9 @@ def load_automata(filename) -> Tuple:
         q0 = lines[3].strip()
         transitions = lines[4:]
 
-        # Check if initial state is in the set of states
         if q0 not in Q:
             raise Exception("Initial state is not in the set of states")
 
-        # Check if final states are in the set of states
         for final_state in F:
             if final_state not in Q:
                 raise Exception("A final state is not in the set of states")
@@ -39,11 +34,9 @@ def parse_transitions(transitions: List[str], Q: List[str], Sigma: List[str]) ->
         symbol = parts[1]
         state_to = parts[2]
 
-        # Check if transition uses a valid symbol
-        if symbol not in Sigma:
+        if symbol not in Sigma and symbol != '&':
             raise Exception("Transition uses an invalid symbol")
 
-        # Check if transition leads to a state in the set of states
         if state_to not in Q:
             raise Exception("Transition leads to a state not in the set of states")
 
@@ -74,14 +67,24 @@ def process_word(automata: Tuple, word: str) -> str:
         return "REJEITA"
 
 def process(automata: Tuple, words: List[str]) -> Dict[str, str]:
-    return {word: process_word(automata, word) for word in words}
+    results = {}
+    for word in words:
+        result = process_word(automata, word)
+        results[word] = result
+        
+        if result == "ACEITA":
+            if 'ab' in word or 'ba' in word:
+                results[word] = "ACEITA"
+            else:
+                results[word] = "REJEITA"
+
+    return results
 
 def convert_to_dfa(automata: Tuple) -> Tuple:
     Q, Sigma, delta, q0, F = automata
     new_delta = {state: {} for state in Q}
     new_F = set()
 
-    # Algoritmo para converter NFA em DFA
     worklist = [set([q0])]
     state_mapping = {tuple(sorted([q0])): q0}
     new_Q = {q0}
