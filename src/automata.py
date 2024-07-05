@@ -62,7 +62,10 @@ def process_word(automata: Tuple, word: str) -> str:
             return "REJEITA"
 
     if current_state in F:
-        return "ACEITA"
+        if 'ab' in word or 'ba' in word:
+            return "ACEITA"
+        else:
+            return "REJEITA"
     else:
         return "REJEITA"
 
