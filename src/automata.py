@@ -13,13 +13,13 @@ def load_automata(filename: str) -> Tuple[
 
         sigma = set(lines[0].split())  
         states = set(lines[1].split())  
-        final_states = set(lines[2].split())  
-        initial_state = lines[3]  
+        last_states = set(lines[2].split())  
+        first_state = lines[3]  
 
-        if initial_state not in states:
+        if first_state not in states:
             raise ValueError("Initial state not in set of states.")
 
-        if not final_states.issubset(states):
+        if not last_states.issubset(states):
             raise ValueError("Final states not in set of states.")
 
         delta = {} 
@@ -39,7 +39,7 @@ def load_automata(filename: str) -> Tuple[
                 else:
                     delta[(origin, symbol)] = [delta[(origin, symbol)], destination]
 
-        return states, sigma, delta, initial_state, final_states
+        return states, sigma, delta, first_state, last_states
     except FileNotFoundError as exc:
         raise FileNotFoundError("File not found.") from exc
     except Exception as e:
@@ -100,22 +100,22 @@ def convert_to_dfa(
     automata: Tuple[Set[str], Set[str], Dict[Tuple[str, str], Union[str, List[str]]], str, Set[str]]
 ) -> Tuple[Set[str], Set[str], Dict[Tuple[str, str], str], str, Set[str]]:
     
-    _, sigma, delta, q0, final_states = automata
+    _, sigma, delta, q0, last_states = automata
 
     new_states = set()
     new_delta = {}
     unprocessed_states = [frozenset(epsilon_closure(q0, delta))]
     state_mapping = {frozenset(epsilon_closure(q0, delta)): 'S0'}
     new_q0 = 'S0'
-    new_final_states = set()
+    new_last_states = set()
     state_counter = 1
 
     while unprocessed_states:
         current_subset = unprocessed_states.pop()
         current_state_name = state_mapping[current_subset]
 
-        if not current_subset.isdisjoint(final_states):
-            new_final_states.add(current_state_name)
+        if not current_subset.isdisjoint(last_states):
+            new_last_states.add(current_state_name)
 
         new_states.add(current_state_name)
 
@@ -139,4 +139,4 @@ def convert_to_dfa(
 
                 new_delta[(current_state_name, symbol)] = state_mapping[next_subset]
 
-    return new_states, sigma, new_delta, new_q0, new_final_states
+    return new_states, sigma, new_delta, new_q0, new_last_states
